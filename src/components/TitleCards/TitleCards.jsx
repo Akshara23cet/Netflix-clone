@@ -1,46 +1,118 @@
-// // src/components/TitleCards/TitleCards.jsx
-// import React, { useEffect, useState } from 'react';
-// import { fetchMovies } from '../../api';
-// import './TitleCards.css';
+import React, { useEffect, useState } from 'react';
 
-// const TitleCards = ({ title, category }) => {
-//   const [movies, setMovies] = useState([]);
+import { fetchMoviesByCategory, fetchTvByCategory, fetchMoviesByLanguage, IMAGE_BASE_URL } from '../../api';
 
-//   useEffect(() => {
-//     const getData = async () => {
-//       try {
-//         const movieData = await fetchMovies(category);
-//         console.log('Fetched data for category:', category, movieData);
-//         console.log("Movie Object:", movie);
+import MovieModal from '../MovieModal/MovieModal';
 
-//         setMovies([{
-//            id: "tt1234567",
-//     image: { url: "https://via.placeholder.com/150" },
-//     l: "Sample Movie"
-//         }
+import './TitleCards.css';
 
-//         ]);
-//       } catch (error) {
-//         console.error('Error fetching movies:', error);
-//       }
-//     };
 
-//     getData();
-//   }, [category]);
 
-//   return (
-//     <div className="title-card-container">
-//       <h2>{title}</h2>
-//       <div className="card-list">
-//         {movies.map((movie) => (
-//           <div key={movie.id} className="card">
-//             <img src={movie.image.url} alt={movie.l} />
-//             <p>{movie.l}</p>
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
+const TitleCards = ({ title, category, mediaType = 'movie', language }) => {
 
-// export default TitleCards;
+  const [movies, setMovies] = useState([]);
+
+  const [selectedMovie, setSelectedMovie] = useState(null);
+
+
+
+  useEffect(() => {
+
+    const getData = async () => {
+
+      try {
+
+        let data;
+
+        if (language) {
+
+          data = await fetchMoviesByLanguage(language);
+
+        } else if (mediaType === 'tv') {
+
+          data = await fetchTvByCategory(category);
+
+        } else {
+
+          data = await fetchMoviesByCategory(category);
+
+        }
+
+        setMovies(data);
+
+      } catch (error) {
+
+        console.error('Error fetching movies:', error);
+
+      }
+
+    };
+
+    getData();
+
+  }, [category, mediaType, language]);
+
+
+
+  return (
+
+    <>
+
+      <div className="titlecards">
+
+        <h2>{title}</h2>
+
+        <div className="card-list">
+
+          {movies.map((movie) => (
+
+            <div key={movie.id} className="card" onClick={() => setSelectedMovie(movie)}>
+
+              <img
+
+                src={
+
+                  movie.poster_path
+
+                    ? `${IMAGE_BASE_URL}${movie.poster_path}`
+
+                    : movie.backdrop_path
+
+                    ? `${IMAGE_BASE_URL}${movie.backdrop_path}`
+
+                    : 'https://via.placeholder.com/240x135?text=No+Image'
+
+                }
+
+                alt={movie.title}
+
+              />
+
+              <p>{movie.title}</p>
+
+            </div>
+
+          ))}
+
+        </div>
+
+      </div>
+
+
+
+      {selectedMovie && (
+
+        <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} />
+
+      )}
+
+    </>
+
+  );
+
+};
+
+
+
+export default TitleCards; 
+
